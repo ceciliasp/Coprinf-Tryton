@@ -1,0 +1,79 @@
+Documentación Implementación Tryton 3.4
+
+
+#Instalación Paquetes de sistema
+sudo apt-get install python-dev libpq-dev python-dev postgresql postgresql-contrib 
+python pip python-dateutil python-psycopg2 python-pydot python-webdav python-mock python-bcrypt python-simplejson python-relatorio libreoffice-java-common swig python-lxml python-libxml2 libxslt-dev libpq-dev make git mercurial unocov
+
+#Definir usuario de postgresql
+sudo su postgres
+ createuser -P --interactive dbtryton #Este shell interactivo preguntará las distintas opciones (dar permisos de superusuario, permisos         #para crear bases, etc)
+
+#crear la base de datos
+createdb prueba  #prueba es el nombre, puede ser cualquier otro pero tomar nota de este #nombre al correr #el servidor de tryton (switch “-d')
+
+#correr servidor llamando a la base antes creada y al archivo de configuración creado(nos pedira que asignemos clave para el usuario Admin. Este usuario sera admin de esta base de datos solamente)
+trytond -d prueba --all -c $HOME/trytond.conf 
+
+#Instalar pip (puede que ya esté instalado previamente)
+sudo apt-get install python-pip 
+
+#Instalar Servidor Tryton
+sudo pip install trytond==3.4.3
+
+# Crear archivo trytond.con (para los efectos de esta documentación, se ubicará al achivo # en $HOME/
+cat $HOME/trytond.conf
+gedit $HOME/trytond.conf
+
+###
+#Ejemplo de archivo trytond.conf
+[jsonrpc] 
+listen=*:8001 
+data=/var/www/localhost/tryton 
+[database] 
+uri=postgresql://user_postgres:pswd_postgres@localhost:5432 
+path=/var/lib/tryton/data # directorio donde se guardaran los adjuntos 
+###
+
+#Instalar Módulos de Tryton
+sudo pip install trytond-account==3.4.2 
+trytond-account-invoice==3.4.1                     
+trytond-account-invoice-history==3.4.1
+trytond-account-invoice-stock==3.4.1       
+trytond-account-payment==3.4.1 trytond-account-product==3.4.1
+trytond-analytic-account==3.4.1 trytond-analytic-invoice==3.4.1 
+trytond-analytic-purchase==3.4.1 trytond-analytic-sale==3.4.1 t
+rytond-bank==3.4.1 trytond-company==3.4.1 trytond-country==3.4.1 
+trytond-currency==3.4.1 trytond-party==3.4.1 trytond-product==3.4.1 
+trytond-purchase==3.4.1 trytond-sale==3.4.1 trytond-stock==3.4.1 
+trytonar-account-invoice-ar==3.4.1 trytonar-account-coop-ar==3.4.0 t
+rytonar-account-voucher-ar==3.4.0 trytonar-account-check-ar==3.4.1
+trytonar-account-retencion-ar==3.4.0 trytonar-account-bank-ar==3.4.0
+trytonar-account-ar==3.4.0
+
+#Instalar Cliente
+wget http://downloads.tryton.org/3.4/tryton-3.4.3.tar.gz
+tar xvf tar xvf tryton-3.4.3.tar.gz
+cd tryton-3.4.3/bin
+./tryton
+
+#Hacemos update de la base con los modulos installados
+trytond -c $HOME/trytond.conf -d prueba  --u all
+
+#Correr el servidor
+trytond -c $HOME/trytond.conf -d prueba
+
+#Back Up de Base de Datos
+#Primero hay que realizar un Dump de la base a restaurar, luego crear una nueva y restaurar los datos
+
+pg_dump mibase > mibase_ddmmaa.sql  #los nombres son a modo de ejemplo
+
+#Para restaurarla:
+dropdb mi_base
+
+#Para crear una base nueva en blanco
+createdb mi_base
+
+#Para restaurar los datos a la nueva base
+psql mi_base <  mibase_ddmmaa.sql
+
