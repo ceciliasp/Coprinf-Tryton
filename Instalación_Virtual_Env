@@ -1,0 +1,172 @@
+###########################################################################################################
+VIRTUAL_ENVS
+Herramientas de uso e instalación
+#Es recomendable utilizar algunas herramientas que facilitan la instalación y gestión de Tryton. 
+
+pip: Herramienta para instalar y gestionar paquetes de Python
+virtualenv: Herramienta para crear entornos controlados de Python. Permite tener diferentes versiones de algunas librerías y controlar las dependencias instaladas para cada entorno
+virtualenvwrapper: Conjunto de extensiones hechas sobre virtualenv para simplificar su uso.
+Sistemas de Control de Versiones: Hay que mencionar además la gran utilidad que tienen sistemas como Mercurial o Git, que permiten llevar registro de las distintas modificaciones hechas al código. 
+
+Instalación de pip y virtualenvwrapper
+En primer lugar podemos instalar el paquete pip que trae el sistema operativo. Luego podemos usar pip para instalar virtualenvwrapper
+#################################################################################################################
+
+$ sudo apt-get install python-pip
+$ pip install --user virtualenvwrapper
+
+#################################################################################################################
+La opción --user de pip hace que instale dentro de la carpeta .local/ del home del usuario. De esa manera no es necesario utilizar carpetas del sistema o recurrir al superusuario para instalar mediante pip. 
+
+Configuración de virtualenvwrapper
+Hay que indicarle al sistema cómo trabajar con virtualenvwrapper. Podemos crear una carpeta llamada .virtualenvs/, en el home, y usarla para contener los entornos creados. 
+Agregar en el archivo /home/usuario/.bashrc las siguientes líneas:
+#################################################################################################################
+
+export WORKON_HOME=$HOME/.virtualenvs
+source $HOME/.local/bin/virtualenvwrapper.sh
+#################################################################################################################
+De esta manera, en el home tendremos dos carpetas:
+$HOME/.local/:
+todo lo que se instale con pip con la opción --user
+$HOME/.virtualenvs/:
+los entornos virtuales creados con virtualenv[wrapper]
+Creación del entorno e instalación de Tryton
+
+Se crea el entorno virtual, al que llamamos, por ejemplo, tryton-3.4:
+#################################################################################################################
+
+$ mkvirtualenv tryton-3.4
+(tryton-3.4)$ pip install trytond==3.4.3
+
+#################################################################################################################
+Al crear el entorno virtual el comando mkvirtualenv también activa este entorno: el prompt de la consola indica (tryton-3.4)$, es decir que antepone el nombre del entorno en el que nos encontramos. 
+
+pip dentro de un entorno virtual
+Al ejecutar pip dentro del entorno no hace falta indicarle --user, porque directamente instala dentro del entorno virtual, que se encuentra en $HOME/.virtualenvs/
+
+Instalación de módulos
+Pueden instalarse módulos de Tryton, por ejemplo: 
+#################################################################################################################
+
+(tryton-3.4)$ pip install trytond_account==3.4.2
+#################################################################################################################
+Esto instala el módulo account en su versión 3.4.2, junto con sus dependencias: company, currency, country, party, dentro de la carpeta modules del servidor trytond, en el entorno virtual. Es decir que en este caso instalamos cinco módulos.
+Para comenzar a trabajar en un entorno de python y dejar de trabajar en él utilizamos los comandos workon y deactivate
+#################################################################################################################
+
+$ workon tryton-3.4
+(tryton-3.4)$ ...
+(tryton-3.4)$ deactivate
+$
+
+#También es posible eliminar todo el entorno:
+$ rmvirtualenv tryton-3.4
+#################################################################################################################
+El archivo trytond.conf
+Tryton podría funcionar sin un archivo trytond.conf. Pero normalmente querremos tenerlo. Podemos ubicarlo en cualquier lugar del sistema de archivos, y no debemos olvidar indicarle al servidor dónde encontrarlo, con la opción -c
+
+[jsonrpc]
+listen=*:8000
+data=/var/www/localhost/tryton
+[database]
+uri=postgresql://usuario:password@localhost:5432
+path=/var/lib/tryton/data # directorio donde se guardaran los adjuntos
+[session]
+timeout=3600
+super_pwd=V6imlhDMI0fiY
+
+La contraseña de super usuario
+En el archivo de configuración la contraseña debe estar encriptada.
+Para encriptar una contraseña podemos ejecutar el siguiente comando en una terminal. El resultado que se obtiene es el que hay que agregar en el archivo de configuración, como valor de super_pwd.
+#################################################################################################################
+
+$ python -c 'import getpass,crypt,random,string;
+print crypt.crypt(getpass.getpass(),
+"".join(random.sample(string.ascii_letters + string.digits, 8)))'
+
+#################################################################################################################
+INSTALACIÓN MASIVA DE MODULOS SERVER Y PAQUETES…
+
+1- Instalación de Módulos PIP y correr server y DB con solamente los módulos que se pudieron instalar con el pip
+Ejecutar la siguiente línea desde el virtual env donde se instalan todas las líneas del arhcivo de texto: 
+#################################################################################################################
+
+ pip install --allow-all-external -r /home/agustin/Downloads/tryton32.txt
+
+
+#Ejecutar el servidor: 
+trytond -c /home/usuario/TRYTON_virtualenv/tryton_32/trytond.conf
+
+#Ver cómo se busca el archivo de configuración en otra carpeta externa!  
+
+#Ejecutar Cliente
+cd /home/usuario/TRYTON_virtualenv/tryton_32/tryton-3.2.9/bin
+
+#Ver cómo se colocó la carpeta con el cliente en la ubicacion exterior y se ejecutó por fuera el virtualenv. 
+
+#Conclusión: tenemos el server andando con el empaquetamietno del virtualenv y todos los módulos pip. El cliente se ejecuta externamente y desde el mismo se crean las DB. 
+
+#2- CONGELAR LAS LÍNEAS INSTALADAS POR PIP
+#Ejecutar la siguiente línea: 
+pip freeze > /home/usuario/congelado.txt
+
+#3- Instalación de Módulos PIP y correr server y DB incorporando módulos existentes en una carpeta externa 
+#Esto es útil para módulos que no están disponibles por repositorio pip. 
+
+#1- Ejecutar la siguiente línea desde el virtual env donde se instalan todas las líneas del arhcivo de texto: 
+
+pip install --allow-all-external -r /home/agustin/Downloads/tryton32.txt
+
+#2- En una determinada carpeta (fuera de la carpeta donde están los virtualenv preferentemente) descargar el servidor (carpeta trytond-3.2.2 por ej). En la carpeta modules donde siempre se guardan las carpetas de los módulos, solamente incorporar aquellas carpetas (por hg clone, o el método que sea) que no están disponibles por pip. 
+
+#3- Ejecutar el servidor desde la carpeta de los módulos extras: 
+./trytond -c /home/agustin/TRYTON_virtualenv/tryton_32_CS/trytond.conf
+
+#Observar cómo se busca el archivo de configuración en otra carpeta externa!  Observar como se corre con ./trytond y no trytond solo. 
+
+#4- Ejecutar Cliente
+cd /home/agustin/TRYTON_virtualenv/tryton_32/tryton-3.2.9/bin
+
+#Ver cómo se colocó la carpeta con el cliente en la ubicacion exterior y se ejecutó por fuera el virtualenv. 
+
+#Conclusión: tenemos el server andando con el empaquetamietno del virtualenv y todos los módulos pip. El cliente se ejecuta externamente y desde el mismo se crean las DB. 
+
+#################################################################################################################
+
+Donde ver los paquetes pip
+https://pypi.python.org/pypi?%3Aaction=index
+
+OBSERVACIONES
+Puede ser que surja un problema al instalar psycopg2. Seguir lo siguiente: 
+
+http://stackoverflow.com/questions/28253681/you-need-to-install-postgresql-server-dev-x-y-for-building-a-server-side-extensi
+
+Otro problema que puede llegar a ocurrir, es con SWIG, para el mismo:
+https://github.com/letsencrypt/lets-encrypt-preview/issues/276
+https://blog.rectalogic.com/2013/11/installing-m2crypto-in-python.html
+
+Lo que se debe hacer es primero ejecutar:
+#################################################################################################################
+
+sudo apt-get install dpkg-dev
+
+#y luego:      
+sudo pip install git+http://github.com/martinpaljak/M2Crypto.git
+
+#Problema con PyAfipws:
+
+#Va a tirar error desp cuando se quiere instalar, con varios repositorios que requiere, pero hace mucho problema con PIL. Entonces, lo que se debe hacer es installar Pillow antes:
+
+pip install Pillow
+
+pip install PyAfipws
+
+#################################################################################################################
+LÓGICA UTILIZADA PARA TRABAJAR CON LOS VIRTUAL ENVS
+1- Todo lo que pueda ir por repositorio PIP va por repositorio pip…. se usa pip install desde el virtual env
+2- Todo lo que no, lo guardamos en una carpeta modules dentro dela carpeta del servidor dentro de una carpeta especial para lo externo de una implementación dada. Hacemos una carpeta de estas por cada implementación. Recordar que en la carpeta modules solo los extras, los modulos del sistema (pip) ya estan instalados en el virtualenv
+3- Para ejecutar servidor: entramos al virtualenv y nos dirigimos a la carpeta donde tenemos el servidor y los módulos, vamos a bin y ejecutamos como ./trytond con el respectivo archivo de configuración como se menciona anteriormente.
+4- Generar un virtual env por cada implementacion, por tema traducciones, y especificaciones especiales 
+#################################################################################################################
+
